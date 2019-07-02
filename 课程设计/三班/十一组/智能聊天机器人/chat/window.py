@@ -142,7 +142,7 @@ t.title('与十一组的bot聊天中...')
 frmLT = Frame(width=500, height=320, bg='white')
 frmLC = Frame(width=500, height=150, bg='white')
 frmLB = Frame(width=500, height=30)
-frmRT = Frame(width=200, height=500)
+frmRT = Frame(width=500, height=500)
 # 创建控件
 txtMsgList = Text(frmLT)
 txtMsgList.tag_config('greencolor', foreground='#008C00')  # 创建绿色的tag
@@ -156,9 +156,10 @@ btnCancel = Button(frmLB, text='取 消', width=8, command=cancelMsg)
 btnRecord = Button(frmLB, text='录 音', width=8, command=lambda: record())
 btnPhoto = Button(frmLB, text='图 片', width=8, command=lambda: photo())
 
-# imgInfo = PhotoImage(file="xx.jpg")
-# lblImage = Label(frmRT, image=imgInfo)
-# lblImage.image = imgInfo
+picture = r"D:/MyProgramFiles/PycharmWorkspace/课程设计/三班/十一组/智能聊天机器人/picture/timg000.gif"
+imgInfo = PhotoImage(file=picture)
+lblImage = Label(frmRT, image=imgInfo)
+lblImage.image = imgInfo
 
 # 窗口布局，使用grid设置各个容器位置
 frmLT.grid(row=0, column=0, columnspan=2, padx=1, pady=3)
@@ -176,7 +177,7 @@ btnSend.grid(row=2, column=1)
 btnCancel.grid(row=2, column=2)
 btnRecord.grid(row=2, column=3)
 btnPhoto.grid(row=2, column=4)
-# lblImage.grid()
+lblImage.grid()
 txtMsgList.grid()
 txtMsg.grid()
 # 主事件循环
