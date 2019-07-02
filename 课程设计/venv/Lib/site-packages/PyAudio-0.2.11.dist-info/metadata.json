@@ -1,0 +1,1 @@
+{"extensions": {"python.details": {"contacts": [{"name": "Hubert Pham", "role": "author"}], "document_names": {"description": "DESCRIPTION.rst"}, "project_urls": {"Home": "http://people.csail.mit.edu/hubert/pyaudio/"}}}, "generator": "bdist_wheel (0.29.0)", "metadata_version": "2.0", "name": "PyAudio", "summary": "PortAudio Python Bindings", "version": "0.2.11"}
