@@ -15,8 +15,10 @@ import 三班.十一组.智能聊天机器人.synthesis.speech_synthesis as syTo
 import 三班.十一组.智能聊天机器人.resource.play as play
 from os.path import join as path_join
 # 全局变量，代表是否显示聊天界面窗口,1代表显示，0代表不显示
-global show_chat_window  #在使用前初次声明
-show_chat_window = 0    #给全局变量赋值,默认先赋值为0，不显示
+global show_chat_window  # 在使用前初次声明
+show_chat_window = 0    # 给全局变量赋值,默认先赋值为0，不显示
+global usr_name  # 用户名
+global usr_pwd  # 用户密码
 
 # 可能用到的常量
 # 存储所有音频文件的路径
@@ -60,6 +62,8 @@ entry_usr_pwd.place(x=160, y=190)
 # 登录函数
 def usr_log_in():
     # 输入框获取用户名密码
+    global usr_name
+    global usr_pwd
     usr_name = var_usr_name.get()
     usr_pwd = var_usr_pwd.get()
     # 从本地字典获取用户信息，如果没有则新建本地数据库
@@ -164,8 +168,6 @@ bt_logup.place(x=280, y=230)
 window_login.mainloop()
 
 
-
-
 # 聊天窗口部分的函数
 # 发送按钮事件对应的函数
 def sendMsg():  # 发送消息
@@ -226,36 +228,6 @@ def start():
     txtMsgList.insert(END, robMsg)
 
 
-def record():
-    # 拼接生成用户录音文件的路径
-    users_records_file_path = path_join(RECORDS_FILE_PATH, get_time_string() + USERS_RECORDS_FILE_NAME + '.wav')
-    # 1.录音
-    # 2.存储到本地——resource
-    rTools.record(4, users_records_file_path)
-    # 3.取出音频进行解析：解析成中文
-    r = sTools.recognise_local_record(users_records_file_path)
-    global result_text_string  # <- here
-    result_text_string = r['result'][0] + '\n'
-    # 4.打印解析出来的结果
-    human_insertMsg()
-    # 5. 语音转化成文字后，触发调用图灵机器人接口,将转化好的文字传入图灵机器人
-    global bot_response  # <- here
-    bot_response = cTools.turing_bot(0, API_KEY, text_input=result_text_string) + '\n'
-    # 6. 文字传入图灵机器人时，触发机器人回话。图灵机器人根据传入的文字，展示结果
-    robot_insertMsg()
-    # 7. 拼接生成机器人回复的音频文件的路径
-    robot_response__file_path = path_join(RECORDS_FILE_PATH, get_time_string() + ROBOT_RESPONSE_FILE_NAME + '.mp3')
-    # 8. 把机器人的回复转换成语音,语音合成方法返回值是二进制文件流
-    syTools.speech_synthesis(robot_response__file_path, bot_response)  # 调用语音合成方法
-    # 9. 把转化好的wav格式的语音在后台进行播放
-    # strMsg = 'robot11:' + time.strftime("%Y-%m-%d %H:%M:%S",
-    #                                     time.localtime()) + '\n '
-    # txtMsgList.insert(END, strMsg, 'bluecolor')
-    # robMsg = "现在来听一下机器人的回复吧~"+'\n'
-    # txtMsgList.insert(END, robMsg)
-    play.play_audio(robot_response__file_path)
-
-
 def photo():
     global purl
     purl = txtMsg.get('0.0', END)  # 获取文本框内容
@@ -282,7 +254,59 @@ def photo():
     play.play_audio(robot_response__file_path)
 
 
+# # 如果全局变量为0则不会创建录音提示窗口
+# if show_record_window:
+#     # 建立窗口window
+#     window_record = Tk()
+#     # 给窗口的可视化起名字
+#     window_record.title('录音中...')
+#     # 设定窗口的大小(长＊宽)
+#     window_record.geometry('400x100')
+#     # 在图形界面上设定标签
+#     l = Label(window_record, text='正在录音中，持续时间4秒，请说句话吧：', bg='red', font=('Arial,12'), width=100, height=2)
+#     # 说明： bg为背景，font为字体，width为长，height为高，这里的长和高是字符的长和高，比如height=2,就是标签有2个字符这么高
+#     # 安置标签
+#     l.pack()
+#     # 主事件循环
+#     window_record.mainloop()
+
+
+def record():
+    # 拼接生成用户录音文件的路径
+    users_records_file_path = path_join(RECORDS_FILE_PATH, get_time_string() + USERS_RECORDS_FILE_NAME + '.wav')
+    # 录音
+    # 存储到本地——resource
+    # # 录音的过程中跳出提示正在录音的一个界面
+    # global show_record_window
+    # show_record_window = 1
+    rTools.record(4, users_records_file_path)
+    # 录音结束后自动关闭提示录音窗口
+    # window_record.destroy()
+    # 重新置全局变量为0
+    # show_record_window = 0
+    # 取出音频进行解析：解析成中文
+    # 录音结束后弹出提示框提示录音已结束
+    messagebox.showinfo(title='提示', message='录音已结束！')
+    r = sTools.recognise_local_record(users_records_file_path)
+    global result_text_string  # <- here
+    result_text_string = r['result'][0] + '\n'
+    # 打印解析出来的结果
+    human_insertMsg()
+    # 语音转化成文字后，触发调用图灵机器人接口,将转化好的文字传入图灵机器人
+    global bot_response  # <- here
+    bot_response = cTools.turing_bot(0, API_KEY, text_input=result_text_string) + '\n'
+    # 文字传入图灵机器人时，触发机器人回话。图灵机器人根据传入的文字，展示结果
+    robot_insertMsg()
+    # 拼接生成机器人回复的音频文件的路径
+    robot_response__file_path = path_join(RECORDS_FILE_PATH, get_time_string() + ROBOT_RESPONSE_FILE_NAME + '.mp3')
+    # 把机器人的回复转换成语音,语音合成方法返回值是二进制文件流
+    syTools.speech_synthesis(robot_response__file_path, bot_response)  # 调用语音合成方法
+    # 把转化好的wav格式的语音在后台进行播放
+    play.play_audio(robot_response__file_path)
+
+
 if show_chat_window:
+    global usr_name
     # 如果全局变量为0则不会创建聊天窗口
     t = Tk()
     t.title('与十一组的bot聊天中...')
@@ -297,13 +321,12 @@ if show_chat_window:
     txtMsgList.tag_config('redcolor', foreground='#FF0000')  # 创建红色的tag
     txtMsg = Text(frmLC)
     txtMsg.bind("<KeyPress-Up>", sendMsgEvent)
-
     btnStart = Button(frmLB, text='开 始', width=8, command=lambda: start())
     btnSend = Button(frmLB, text='发 送', width=8, command=sendMsg)
     btnCancel = Button(frmLB, text='取 消', width=8, command=cancelMsg)
     btnRecord = Button(frmLB, text='录 音', width=8, command=lambda: record())
     btnPhoto = Button(frmLB, text='图 片', width=8, command=lambda: photo())
-
+    labelUser = Label(frmLB, text='当前用户：' + usr_name)
     bot_picture = IMAGE_PATH + 'bot_pic.gif'
     imgInfo = PhotoImage(file=bot_picture)
     lblImage = Label(frmRT, image=imgInfo)
@@ -325,8 +348,19 @@ if show_chat_window:
     btnCancel.grid(row=2, column=2)
     btnRecord.grid(row=2, column=3)
     btnPhoto.grid(row=2, column=4)
+    labelUser.grid(row=2, column=5)
     lblImage.grid()
     txtMsgList.grid()
     txtMsg.grid()
     # 主事件循环
     t.mainloop()
+
+
+
+
+
+
+
+
+
+
