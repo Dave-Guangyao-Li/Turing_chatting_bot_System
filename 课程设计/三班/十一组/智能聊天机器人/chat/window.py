@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Thur July 4 13:34:10 2019
+@author: 李光耀 郭余悦 马瑞鑫
+"""
 from tkinter import *
+import tkinter.messagebox as messagebox
+import pickle
 import time
 import 三班.十一组.智能聊天机器人.record.records as rTools
 import 三班.十一组.智能聊天机器人.recognition.voice_recognition as sTools
@@ -8,6 +14,9 @@ import 三班.十一组.智能聊天机器人.check.check as cTools
 import 三班.十一组.智能聊天机器人.synthesis.speech_synthesis as syTools
 import 三班.十一组.智能聊天机器人.resource.play as play
 from os.path import join as path_join
+# 全局变量，代表是否显示聊天界面窗口,1代表显示，0代表不显示
+global show_chat_window  #在使用前初次声明
+show_chat_window = 0    #给全局变量赋值,默认先赋值为0，不显示
 
 # 可能用到的常量
 # 存储所有音频文件的路径
@@ -18,9 +27,147 @@ ROBOT_RESPONSE_FILE_NAME = 'robotResponse_file'
 USERS_RECORDS_FILE_NAME = 'usersRecords_file'
 # 图灵机器人的API_KEY
 API_KEY = '20e3b5d7bf4249cf872fedde5349ffe9'
+# 图片文件的路径
+IMAGE_PATH = r'D:/MyProgramFiles/PycharmWorkspace/课程设计/三班/十一组/智能聊天机器人/picture/'
+# 存储用户信息的文件路径
+USER_INFO_FILE = r'D:/MyProgramFiles/PycharmWorkspace/课程设计/三班/十一组/智能聊天机器人/user/'
 
 
-# 发送按钮事件
+# 开始弹出的登录窗口
+window_login = Tk()  # 创建开始的登录窗口
+window_login.title('欢迎进入智能聊天机器人系统')  # 登录窗口标题
+window_login.geometry('450x300')  # 设置窗口大小
+
+# 画布放置图片
+backgroud_pic = IMAGE_PATH + 'background_pic.gif'
+canvas = Canvas(window_login, height=300, width=500)
+imagefile = PhotoImage(file=backgroud_pic)
+image = canvas.create_image(0, 0, anchor='nw', image=imagefile)
+canvas.pack(side='top')
+# 标签 用户名密码
+Label(window_login, text='用户名:').place(x=100, y=150)
+Label(window_login, text='密码:').place(x=100, y=190)
+# 用户名输入框
+var_usr_name = StringVar()
+entry_usr_name = Entry(window_login, textvariable=var_usr_name)
+entry_usr_name.place(x=160, y=150)
+# 密码输入框
+var_usr_pwd = StringVar()
+entry_usr_pwd = Entry(window_login, textvariable=var_usr_pwd, show='*')
+entry_usr_pwd.place(x=160, y=190)
+
+
+# 登录函数
+def usr_log_in():
+    # 输入框获取用户名密码
+    usr_name = var_usr_name.get()
+    usr_pwd = var_usr_pwd.get()
+    # 从本地字典获取用户信息，如果没有则新建本地数据库
+    try:
+        with open(USER_INFO_FILE + 'usr_info.pickle', 'rb') as usr_file:
+            usrs_info = pickle.load(usr_file)
+    except FileNotFoundError:
+        with open(USER_INFO_FILE + 'usr_info.pickle', 'wb') as usr_file:
+            usrs_info = {'admin': 'admin'}
+            pickle.dump(usrs_info, usr_file, 0)
+    # 判断用户名和密码是否匹配
+    if usr_name in usrs_info:
+        if usr_pwd == usrs_info[usr_name]:
+            messagebox.showinfo(title='welcome',
+                                   message='欢迎您：' + usr_name)
+            # 登录成功关闭登录框，进入聊天界面
+            window_login.destroy()
+            global show_chat_window
+            show_chat_window = 1
+        else:
+            messagebox.showerror(message='密码错误')
+    # 用户名密码不能为空
+    elif usr_name == '' or usr_pwd == '':
+        messagebox.showerror(message='用户名或密码为空')
+    # 不在数据库中弹出是否注册的框
+    else:
+        is_signup = messagebox.askyesno('欢迎', '您还没有注册，是否现在注册')
+        if is_signup:
+            usr_sign_up()
+
+
+# 注册函数
+def usr_sign_up():
+    # 确认注册时的相应函数
+    def signtowcg():
+        # 获取输入框内的内容
+        nn = new_name.get()
+        np = new_pwd.get()
+        npf = new_pwd_confirm.get()
+
+        # 本地加载已有用户信息,如果没有则已有用户信息为空
+        try:
+            with open(USER_INFO_FILE + 'usr_info.pickle', 'rb') as usr_file:
+                exist_usr_info = pickle.load(usr_file)
+        except FileNotFoundError:
+            exist_usr_info = {}
+
+            # 检查用户名存在、密码为空、密码前后不一致
+        if nn in exist_usr_info:
+            messagebox.showerror('错误', '用户名已存在')
+        elif np == '' or nn == '':
+            messagebox.showerror('错误', '用户名或密码为空')
+        elif np != npf:
+            messagebox.showerror('错误', '密码前后不一致')
+        # 注册信息没有问题则将用户名密码写入数据库
+        else:
+            exist_usr_info[nn] = np
+            with open(USER_INFO_FILE + 'usr_info.pickle', 'wb') as usr_file:
+                pickle.dump(exist_usr_info, usr_file, 0)
+            messagebox.showinfo('欢迎', '注册成功')
+            # 注册成功关闭注册框
+            window_sign_up.destroy()
+
+    # 新建注册界面
+    window_sign_up = Toplevel(window_login)
+    window_sign_up.geometry('350x200')
+    window_sign_up.title('注册')
+    # 用户名变量及标签、输入框
+    new_name = StringVar()
+    Label(window_sign_up, text='用户名：').place(x=10, y=10)
+    Entry(window_sign_up, textvariable=new_name).place(x=150, y=10)
+    # 密码变量及标签、输入框
+    new_pwd = StringVar()
+    Label(window_sign_up, text='请输入密码：').place(x=10, y=50)
+    Entry(window_sign_up, textvariable=new_pwd, show='*').place(x=150, y=50)
+    # 重复密码变量及标签、输入框
+    new_pwd_confirm = StringVar()
+    Label(window_sign_up, text='请再次输入密码：').place(x=10, y=90)
+    Entry(window_sign_up, textvariable=new_pwd_confirm, show='*').place(x=150, y=90)
+    # 确认注册按钮及位置
+    bt_confirm_sign_up = Button(window_sign_up, text='确认注册',
+                                   command=signtowcg)
+    bt_confirm_sign_up.place(x=150, y=130)
+
+
+# # 退出的函数
+# def usr_sign_quit():
+#     window_login.destroy()
+#     # 代表是否显示聊天界面窗口,1代表显示，0代表不显示
+#     global show_chat_window
+#     show_chat_window = 0
+
+
+# 登录 注册按钮
+bt_login = Button(window_login, text='登录', command=usr_log_in)
+bt_login.place(x=140, y=230)
+bt_logup = Button(window_login, text='注册', command=usr_sign_up)
+bt_logup.place(x=280, y=230)
+# bt_logquit = Button(window_login, text='退出', command=usr_sign_quit)
+# bt_logquit.place(x=280, y=230)
+# 主循环
+window_login.mainloop()
+
+
+
+
+# 聊天窗口部分的函数
+# 发送按钮事件对应的函数
 def sendMsg():  # 发送消息
     global text
     text = txtMsg.get('0.0', END)  # 获取文本框内容
@@ -135,50 +282,51 @@ def photo():
     play.play_audio(robot_response__file_path)
 
 
-# 创建窗口
-t = Tk()
-t.title('与十一组的bot聊天中...')
-# 创建frame容器
-frmLT = Frame(width=500, height=320, bg='white')
-frmLC = Frame(width=500, height=150, bg='white')
-frmLB = Frame(width=500, height=30)
-frmRT = Frame(width=500, height=500)
-# 创建控件
-txtMsgList = Text(frmLT)
-txtMsgList.tag_config('greencolor', foreground='#008C00')  # 创建绿色的tag
-txtMsgList.tag_config('redcolor', foreground='#FF0000')  # 创建红色的tag
-txtMsg = Text(frmLC)
-txtMsg.bind("<KeyPress-Up>", sendMsgEvent)
+if show_chat_window:
+    # 如果全局变量为0则不会创建聊天窗口
+    t = Tk()
+    t.title('与十一组的bot聊天中...')
+    # 创建frame容器
+    frmLT = Frame(width=500, height=320, bg='white')
+    frmLC = Frame(width=500, height=150, bg='white')
+    frmLB = Frame(width=500, height=30)
+    frmRT = Frame(width=500, height=500)
+    # 创建控件
+    txtMsgList = Text(frmLT)
+    txtMsgList.tag_config('greencolor', foreground='#008C00')  # 创建绿色的tag
+    txtMsgList.tag_config('redcolor', foreground='#FF0000')  # 创建红色的tag
+    txtMsg = Text(frmLC)
+    txtMsg.bind("<KeyPress-Up>", sendMsgEvent)
 
-btnStart = Button(frmLB, text='开 始', width=8, command=lambda: start())
-btnSend = Button(frmLB, text='发 送', width=8, command=sendMsg)
-btnCancel = Button(frmLB, text='取 消', width=8, command=cancelMsg)
-btnRecord = Button(frmLB, text='录 音', width=8, command=lambda: record())
-btnPhoto = Button(frmLB, text='图 片', width=8, command=lambda: photo())
+    btnStart = Button(frmLB, text='开 始', width=8, command=lambda: start())
+    btnSend = Button(frmLB, text='发 送', width=8, command=sendMsg)
+    btnCancel = Button(frmLB, text='取 消', width=8, command=cancelMsg)
+    btnRecord = Button(frmLB, text='录 音', width=8, command=lambda: record())
+    btnPhoto = Button(frmLB, text='图 片', width=8, command=lambda: photo())
 
-picture = r"D:/MyProgramFiles/PycharmWorkspace/课程设计/三班/十一组/智能聊天机器人/picture/timg000.gif"
-imgInfo = PhotoImage(file=picture)
-lblImage = Label(frmRT, image=imgInfo)
-lblImage.image = imgInfo
+    bot_picture = IMAGE_PATH + 'bot_pic.gif'
+    imgInfo = PhotoImage(file=bot_picture)
+    lblImage = Label(frmRT, image=imgInfo)
+    lblImage.image = imgInfo
 
-# 窗口布局，使用grid设置各个容器位置
-frmLT.grid(row=0, column=0, columnspan=2, padx=1, pady=3)
-frmLC.grid(row=1, column=0, columnspan=2, padx=1, pady=3)
-frmLB.grid(row=2, column=0, columnspan=2)
-frmRT.grid(row=0, column=2, rowspan=3, padx=2, pady=3)
-# 固定大小
-frmLT.grid_propagate(0)
-frmLC.grid_propagate(0)
-frmLB.grid_propagate(0)
-frmRT.grid_propagate(0)
-# 把元素填充进frame
-btnStart.grid(row=2, column=0)
-btnSend.grid(row=2, column=1)
-btnCancel.grid(row=2, column=2)
-btnRecord.grid(row=2, column=3)
-btnPhoto.grid(row=2, column=4)
-lblImage.grid()
-txtMsgList.grid()
-txtMsg.grid()
-# 主事件循环
-t.mainloop()
+    # 窗口布局，使用grid设置各个容器位置
+    frmLT.grid(row=0, column=0, columnspan=2, padx=1, pady=3)
+    frmLC.grid(row=1, column=0, columnspan=2, padx=1, pady=3)
+    frmLB.grid(row=2, column=0, columnspan=2)
+    frmRT.grid(row=0, column=2, rowspan=3, padx=2, pady=3)
+    # 固定大小
+    frmLT.grid_propagate(0)
+    frmLC.grid_propagate(0)
+    frmLB.grid_propagate(0)
+    frmRT.grid_propagate(0)
+    # 把元素填充进frame
+    btnStart.grid(row=2, column=0)
+    btnSend.grid(row=2, column=1)
+    btnCancel.grid(row=2, column=2)
+    btnRecord.grid(row=2, column=3)
+    btnPhoto.grid(row=2, column=4)
+    lblImage.grid()
+    txtMsgList.grid()
+    txtMsg.grid()
+    # 主事件循环
+    t.mainloop()

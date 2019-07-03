@@ -1,6 +1,6 @@
 # encoding: utf-8
 #顶层文件：用于调用其他所有的文件
-# 主业务流程
+# 主业务流程，在控制台执行软件的主要流程
 
 import 三班.十一组.智能聊天机器人.record.records as rTOOLS
 import 三班.十一组.智能聊天机器人.recognition.voice_recognition as recTools
@@ -9,7 +9,6 @@ import 三班.十一组.智能聊天机器人.check.check as botTools
 import 三班.十一组.智能聊天机器人.resource.play as play
 import 三班.十一组.智能聊天机器人.resource.generate_time_string as timeTools
 from os.path import join as path_join
-import 三班.十一组.智能聊天机器人.chat.window as chat_window
 
 # 可能用到的常量
 # 要发送的图片的URL
@@ -24,12 +23,7 @@ USERS_RECORDS = 'usersRecords_file'
 API_KEY = '20e3b5d7bf4249cf872fedde5349ffe9'
 
 
-# 启动聊天窗口界面
 print('欢迎来到智能机器人聊天系统~')
-chat_window.mainloop()
-# 打印结果至窗口界面
-result_text_string = chat_window.sendMsg()
-print('我说：' + result_text_string)
 choose_continue = 1
 while choose_continue:
     type_num_input = int(input('请选择输入方式：0 为录音输入，1 为图片URL输入，2为文字输入：'))
