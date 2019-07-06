@@ -289,7 +289,10 @@ def record():
     messagebox.showinfo(title='提示', message='录音已结束！')
     r = sTools.recognise_local_record(users_records_file_path)
     global result_text_string  # <- here
-    result_text_string = r['result'][0] + '\n'
+    try:
+        result_text_string = r['result'][0] + '\n'
+    except KeyError as e:
+        messagebox.showerror('错误','录音不清晰，识别失败，请重试！')
     # 打印解析出来的结果
     human_insertMsg()
     # 语音转化成文字后，触发调用图灵机器人接口,将转化好的文字传入图灵机器人
@@ -354,13 +357,3 @@ if show_chat_window:
     txtMsg.grid()
     # 主事件循环
     t.mainloop()
-
-
-
-
-
-
-
-
-
-

@@ -13,7 +13,7 @@ from playsound import playsound
 
 # 不用弹出音乐播放软件的窗口而在后台直接播放音频的方法，利用playsound模块中的方法
 def play_audio(filepath):
-    playsound(filepath)
+    playsound(filepath)  # 直接调用playsound方法在后台播放音频
     print('语音播放结束！')
     '''
     这是在后台直接播放wav格式的音频文件的方法。但是因为进行语音合成之后转换mp3再转换为wav的尝试失败，因此不能用

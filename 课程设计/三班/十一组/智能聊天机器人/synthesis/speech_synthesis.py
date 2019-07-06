@@ -20,7 +20,7 @@ def speech_synthesis(FILE_PATH, text_string):
     if not isinstance(result, dict):
         with open(FILE_PATH, 'wb') as f:
             f.write(result)
-    return result
+    return result   # 返回二进制流文件
 
 
 '''
